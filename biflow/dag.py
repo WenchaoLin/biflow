@@ -1,6 +1,7 @@
 import copy
 from collections import OrderedDict
 import logging
+import json
 from datetime import datetime, timedelta
 import functools
 from biflow.exceptions import TaskNotFound, DuplicateTaskIdFound
@@ -31,17 +32,14 @@ class DAG(object):
     def __init__(
         self,
         dag_id: str,
-        max_active_tasks: int = 2,
-        description: str | None = None,
+        description: str = None,
     ):
 
 
         # check self.params and convert them into ParamsDict
         self._dag_id = dag_id
-        self._max_active_tasks = max_active_tasks
         self._description = description
-
-        self.task_dict = OrderedDict()
+        self.task_dict = {}
     
     def __repr__(self):
         return f"<DAG: {self.dag_id}>"
@@ -68,18 +66,15 @@ class DAG(object):
         return self.parent_dag is not None
 
     @property
-    def max_active_tasks(self) -> int:
-        return self._max_active_tasks
-
-    @property
-    def description(self) -> str | None:
+    def description(self) -> None:
         return self._description
 
     @property
     def roots(self) -> list:
         """Return nodes with no parents. These are first to execute and are called roots or root nodes."""
         return [task for task in self.tasks if not task.upstream_list]
-        
+
+ 
     @property
     def tasks(self) -> list:
         return list(self.task_dict.values())
@@ -87,7 +82,6 @@ class DAG(object):
     @tasks.setter
     def tasks(self, val):
         raise AttributeError('DAG.tasks can not be modified. Use dag.add_task() instead.')
-
 
     @property
     def task_ids(self) -> list[str]:
@@ -105,19 +99,6 @@ class DAG(object):
                 if task_id in dag.task_dict:
                     return dag.task_dict[task_id]
         raise TaskNotFound(f"Task {task_id} not found")
-
-
-    def tree_view(self) -> None:
-        """Print an ASCII tree representation of the DAG."""
-
-        def get_downstream(task, level=0):
-            print((" " * level * 4) + str(task))
-            level += 1
-            for t in task.downstream_list:
-                get_downstream(t, level)
-
-        for t in self.roots:
-            get_downstream(t)
 
 
     def add_task(self, task) -> None:
@@ -146,4 +127,8 @@ class DAG(object):
         for task in tasks:
             self.add_task(task)
 
-
+    def to_json(self):
+        jsn = OrderedDict()
+        for task in self.tasks:
+            jsn.update(task.to_json())
+        print(json.dumps(jsn, indent=4))
