@@ -10,8 +10,7 @@ class Task(object):
     ):
         self.task_id = task_id
         self.dag_id = dag_id
-        self.upstream_list = []
-        self.downstream_list = []
+        self.depends = []
 
     def __repr__(self):
         return f"<Task: {self.task_id}>"
@@ -23,7 +22,7 @@ class Task(object):
         :return:
         """
         for task in tasks:
-            task.downstream_list.append(self.task_id)
+            task.depends.append(self.task_id)
 
 
     def set_upstream(self, *tasks):
@@ -33,7 +32,7 @@ class Task(object):
         :return:
         """
         for task in tasks:
-            self.upstream_list.append(task.task_id)
+            self.depends.append(task.task_id)
 
 
     def to_json(self):
@@ -45,7 +44,7 @@ class Task(object):
         r = {self.task_id: 
             {
                 "id": self.task_id,
-                "depends": self.upstream_list,
+                "depends": self.depends,
             }
         }
 

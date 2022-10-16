@@ -9,9 +9,6 @@ t3 = Task('task3')
 
 d.add_tasks([t1,t2,t3])
 
-t1.set_upstream(t2)
-t1.set_upstream(t3)
+t1.set_downstream(t2)
 
-t3.set_upstream(t1)
-
-print(d.to_json())
+print(t2.to_json())
